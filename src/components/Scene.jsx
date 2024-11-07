@@ -17,29 +17,52 @@ const RENDERABLE_ELEMENTS = [
   'IfcBeam'
 ];
 
-function findTransform(node, allNodes) {
-  // Check if node has direct transform
+function findTransform(node, allNodes, parentMap) {
+  console.log('Checking node for transform:', node.name);
+
+  // Check for direct transform
   if (node.attributes?.xformOp?.transform) {
+    console.log('Direct transform found for:', node.name);
     return node.attributes.xformOp.transform;
   }
 
-  // Check inherited transforms
+  // Traverse the inheritance chain
   if (node.inherits) {
     for (const inheritPath of node.inherits) {
-      // Extract name from path (remove </> characters)
       const inheritedName = inheritPath.replace(/[</>]/g, '');
       const inheritedNode = allNodes.find(n => n.name === inheritedName);
-      
+
       if (inheritedNode) {
-        const inheritedTransform = findTransform(inheritedNode, allNodes);
+        console.log('Checking inherited node:', inheritedName);
+        const inheritedTransform = findTransform(inheritedNode, allNodes, parentMap);
         if (inheritedTransform) {
+          console.log(`Inherited transform found for ${node.name} from ${inheritedName}`);
           return inheritedTransform;
         }
+      } else {
+        console.warn('Inherited node not found:', inheritedName);
       }
     }
   }
 
+  // Traverse the parent hierarchy
+  const parentName = parentMap.get(node.name);
+  if (parentName) {
+    const parentNode = allNodes.find(n => n.name === parentName);
+    if (parentNode) {
+      console.log('Traversing to parent node:', parentName);
+      const parentTransform = findTransform(parentNode, allNodes, parentMap);
+      if (parentTransform) {
+        console.log(`Inherited transform found for ${node.name} from parent ${parentName}`);
+        return parentTransform;
+      }
+    } else {
+      console.warn('Parent node not found:', parentName);
+    }
+  }
+
   // Return identity matrix if no transform found
+  console.log('No transform found, returning identity for:', node.name);
   return [
     [1, 0, 0, 0],
     [0, 1, 0, 0],
@@ -55,6 +78,8 @@ function getMeshNodes(allNodes) {
     console.warn('allNodes is null or undefined');
     return [];
   }
+
+  const parentMap = buildParentMap(allNodes); // Build the parent map
 
   const meshNodes = [];
   
@@ -94,8 +119,8 @@ function getMeshNodes(allNodes) {
     });
 
     if (geometry?.points && geometry?.faceVertexIndices) {
-      // Find transformation by traversing inheritance chain
-      const transform = findTransform(ifcNode, allNodes);
+      // Find transformation by traversing inheritance chain and parent hierarchy
+      const transform = findTransform(ifcNode, allNodes, parentMap);
       
       console.log('Found transform for:', ifcNode.name, {
         transform,
@@ -220,6 +245,21 @@ function Mesh({ node, isSelected, onClick }) {
       )}
     </mesh>
   )
+}
+
+// Function to build a child-to-parent map
+function buildParentMap(allNodes) {
+  const parentMap = new Map();
+
+  allNodes.forEach(node => {
+    if (node.children) {
+      node.children.forEach(child => {
+        parentMap.set(child.name, node.name);
+      });
+    }
+  });
+
+  return parentMap;
 }
 
 export default function Scene({ selectedNode, allNodes, onSelectNode }) {
