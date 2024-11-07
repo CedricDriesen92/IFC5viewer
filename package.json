@@ -1,0 +1,36 @@
+{
+  "name": "ifc5-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.1.0",
+    "@react-three/drei": "9.88.0",
+    "@react-three/fiber": "8.15.11",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lodash": "^4.17.21",
+    "lucide-react": "^0.454.0",
+    "next": "14.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tailwind-merge": "^2.5.4",
+    "three": "0.158.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14"
+  }
+}
